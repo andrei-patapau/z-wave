@@ -1,0 +1,215 @@
+
+//php redirect
+<?php header('Location: http://google.com/'); ?>
+
+alert("<?php hello(); ?>");
+
+
+<?php
+
+$a="hello";
+?>
+
+<script>
+function echoHello()
+{
+
+ var a = $('#settingsPort').val();
+ alert("Port Number Is :" + a);
+ alert("<?php hello(); ?>");
+ }
+</script>
+
+<?php
+function hello()
+{
+ global $a;
+ echo $a;
+ }
+?>
+
+
+
+$('#NewFormSubmitButton').livequery('click',function(){  
+
+  alert("testing submit button click"); // gets to this bit
+
+  var FormsFieldValue=$('#InputFieldID').val();
+
+  alert("\nAnd field value=" + FormsFieldValue); 
+
+  return false; // works fine now.
+
+});
+
+========================================================================
+
+<script type='text/javascript'>
+
+<?php $abc ?> = document.write(document.getElementById('report_nam e').value ); <?php ;?>;
+
+</script>
+
+<?php $obj1->getItem( $abc); ?>
+
+$abc is the variable in which i get the JS variable value. 
+JS variable value is read using "document.getElementById"
+
+I then pass the value of $abc in a php function as:-
+<?php $obj1->getItem( $abc); ?>
+
+========================================================================
+ <?php $port ?> = $('#settingsPort').val(); <?php ;?>;
+ 
+ <?php $port = 0; ?>
+
+<script>
+function echoHello()
+{
+
+	//var port = $('#settingsPort').val();
+	var value  = $('#settingsPort').val();
+	location.href = "settings.php?port=" + value;
+ 
+}
+</script>
+
+ $query="select id, name from employee order by name asc";
+ 
+  while(list($id, $name)=mysql_fetch_row($result)) {
+  echo "
+<option value=\"".$id."\">".$name."";
+ }
+ 
+ 
+    <button onclick="echoHello()">Print Port</button>
+    
+
+<script>
+    $(document).ready(function() {
+	  $("input[id$='settingsSetPortBtn']").click(function() {
+		  
+		// Do client side button click stuff here.
+		$("label").slideUp();
+
+	  });
+	});
+</script>
+
+
+
+<script type="text/javascript">
+function echoHello()
+{
+	width = screen.width;
+	height = screen.height;
+	
+	if (width > 0 && height >0) {
+		window.location.href = "http://localhost/main.php?width=" + width + "&height=" + height;
+	} else 
+		exit();
+}
+</script>
+========================================================================
+
+$(function(){
+	$("input").keypress(function(){
+		var name = $(this).next('#exception');
+		
+		$.ajax({
+			type: 'POST',
+			url: 'yourfile.php',
+			data: $(this).serialize(),
+			success: exception
+		});
+		
+		function exception(data, status){
+			$(name).html(data);
+		}
+		
+	});
+});
+
+========================================
+
+	$.ajax({ url: '/script.php',
+         data: {action: 'test'},
+         type: 'post',
+         success: function(output) {
+         	alert(output);
+         }
+	});
+
+================================================================================
+
+PHP Code (maybe randomImages.php?)
+
+// query for all images
+// $_GET['limit'] will have the limit of images
+// since we passed it from the Javascript
+// put them all in an array like this:
+$images = array('images/20.11.A1B9.jpg','images/20.11.A1B9.jpg',...);
+print json_encode($images); // return them to the client in JSON format.
+exit;
+Client Side Javascript
+
+function getRandomImages(limit) {
+    // make request to the server
+    $.getJSON('/path/to/randomImages.php', {limit: limit}, function(data) {
+        // data is now an array with all the images
+        $.each(data, function(i) {
+            // do something with each image
+            // data[i] will have the image path
+        });
+    });
+}
+================================================================================
+
+//Call by button id or function call
+//<button id="getRequest" onclick="getRequest()">Request</button>
+	
+$(document).ready(function(){
+	$("#getRequest").click(function() {
+	  alert("Handler for .click() called.");
+	});
+});
+
+function getRequest()
+{
+
+$.post("data.php", { action: "getRequest"},
+	function(data) {
+		alert("Data Loaded: " + data);
+	});
+
+}
+ 
+ 
+ 
+================================================================================
+
+http://api.jquery.com/jQuery.post/
+http://api.jquery.com/load/
+http://gilbert.pellegrom.me/html-forms-to-ajax-forms-the-easy-way/
+http://stackoverflow.com/questions/1045845/how-to-call-a-javascript-function-from-php
+http://stackoverflow.com/questions/2269307/using-jquery-ajax-to-call-a-php-function
+http://stackoverflow.com/questions/557778/how-to-dynamically-call-a-php-function-in-javascript-function-from-php
+
+
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+================================================================================
+Restart Apache 2 Web Server
+/etc/init.d/apache2 restart
+================================================================================
+You'll need to add a line to /etc/sudoers like
+
+www-data ALL=(root) NOPASSWD: /usr/sbin/useradd
+This allows www-data to run the useradd command.
+
+You may also need to comment out this line, if it exists in /etc/sudoers
+
+================================================================================
+
+
+
+

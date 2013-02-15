@@ -1,0 +1,56 @@
+input.diff
+{
+	margin-top:8px;
+	font-size:18px;
+	color:#222222;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	-border-radius: 2px;
+	display:none;
+	width:280px;
+	
+}
+
+label
+{
+	float:left;
+	margin-top:8px;
+	font-size:18px;
+	color:#222222;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	-border-radius: 2px;
+}
+
+.edit
+{
+	float:left;
+	background:url(/images/edit24.png) no-repeat;
+	width:24px;
+	height:24px;
+	display:block;
+	cursor: pointer;
+	margin-left:10px;
+	margin-top:5px;
+}
+
+.clear
+{
+	clear:both;
+	height:20px;
+}
+
+table#renamingNodes
+{
+	border:1px solid black;
+}
+
+table#renamingNodes td
+{
+	padding:2px 5px;
+	height:24px;
+	vertical-align:bottom;
+	font-size:18px;
+	color:#222222;
+	border:1px solid black;
+}

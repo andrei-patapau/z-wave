@@ -1,0 +1,484 @@
+http://oliverjenkins.com/blog/starting-with-z-wave-and-dot-net
+==============================================================
+Howto compile open-zwave and openzwave-control-panel on Ubuntu
+
+Here’s a quick howto on how to compile open-zwave on Ubuntu;
+
+Compile open-zwave library
+
+svn checkout http://open-zwave.googlecode.com/svn/trunk/ open-zwave
+cd open-zwave/cpp/build/linux/
+sudo apt-get install libudev-dev
+(if g++ not installed => sudo apt-get install build-essential )
+make
+cd ~
+
+Compile libmicrohttpd, needed by openzwave-control-panel
+
+wget ftp://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.19.tar.gz
+tar zxvf libmicrohttpd-0.9.19.tar.gz
+mv libmicrohttpd-0.9.19 libmicrohttpd
+cd libmicrohttpd
+./configure
+make
+sudo make install
+cd ~
+
+Compile openzwave-control-panel
+
+svn checkout http://openzwave-control-panel.googlecode.com/svn/trunk/ openzwave-control-panel
+cd openzwave-control-panel
+nano Makefile
+
+Change the following lines to:
+
+# for Linux uncomment out next two lines
+LIBZWAVE := $(wildcard $(OPENZWAVE)/cpp/lib/linux/*.a)
+LIBUSB := -ludev
+
+Compile:
+
+make
+
+To start the openzwave-control-panel, type;
+./ozwcp -d -p 1234
+
+Point your browser to http://openzwave-machinename:1234/
+=============================================================================
+
+ls -l /dev/ttyUSB*
+
+=============================================================================
+http://code.google.com/p/zvirtualscenes/
+http://forum.melloware.com/viewtopic.php?f=15&t=9067
+
+http://code.google.com/p/zvirtualscenes/source/browse/trunk/Plugins/LightSwitchPlugin/LightSwitchPlugin.cs
+
+=============================================================================
+Z-wave + Perl
+http://forum.z-waver.ru/forum/%D0%98%D0%B4%D0%B5%D0%B8%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B-%D0%B8-%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%D1%8B/13-Linux-%D0%B8-Z-wave
+
+Возникла идея поуправлять устройствами Z-wave из Linux.
+ Не используя специального ПО.
+ Макет управления прост:
+ Компьютер+USB-PC(ZCU201) и регулятор яркости.
+ 
+Для этого потребовались USB-PC устройство из ассортимента магазина www.z-waver.ru/shop?page=shop.product_de...7&category_id=13 и прибор регулирования яркости www.z-waver.ru/shop?page=shop.product_de...&category_id=14.
+ 
+Загружаем любой Linux со свежим ядром, в котором есть spcp8x5 драйвер (spcp8x5 USB to serial adaptor driver). Я пользуюсь OpenSUSE 11.1. Загружаемся, вставляем устройство ZCU201. Заходим в консоль, выполняем:
+ #>lsmod | grep spcp8x5
+ Если в выводе есть этот драйвер, значит он загрузился.
+ На приборе должна гореть зеленая лампочка.
+ 
+Подключаем устройство регулирования яркости в розетку, лампочка на устройстве должна мигать красно-зеленым цветом, означая, что устройство не входит пока что не в одну сеть Z-wave. Если она так не мигает, то её необходимо исключить из других сетей(см. документацию к контроллеру). Я воткнул обычную настольную лампу в розетку устройства, чтобы наглядно понаблюдать за процессом регулирования яркости.
+ 
+Переходим к компьютеру и скачиваем прикрепленный к теме файл(z-waver.pl) в директорию /tmp .
+ z-waver.pl - это пример программы по управлению устройствами Z-wave, написанный на языке Perl.
+ 
+Для работы этой программы требуется установленный модуль perl Device::SerialPort
+ 
+Установка модуля простая(предполагается, что на компьтере уже настроен интернет), можно идти двумя путями:
+ 1. Скачать модуль в директорию /tmp 
+#>cd /tmp
+ #>wget search.cpan.org/CPAN/authors/id/C/CO/COO...rialPort-1.04.tar.gz
+ #>tar zxvf Device-SerialPort-1.04.tar.gz
+ #> cd Device-SerialPort
+ #> perl Makefile.PL
+ #> make
+ #> sudo make install
+ 
+2. Воспользоваться cpan.
+ #> cpan -i Device::SerialPort
+ 
+После установки модуля программа z-waver.pl готова к работе.
+ #> cd /tmp
+ Добавляем устройство в сеть:
+ #> sudo ./z-waver.pl add
+ Программа переходит в режим ожидания устройства.
+ На регуляторе яркости нажимаем 3 раза кнопку.
+ После этого устройство будет добавлено в сеть, лампочка на регуляторе перестанет мигать и будет гореть желтым цветом, если это не произошло необходимо повторить шаг.
+ Программа сообщит какой номер устройства присвоен регулятору, далее для управления будет использоваться этот номер.
+ Если это первое устройство в вашей сети, то номер будет 1.
+ 
+Теперь попробуйте включить регулятор на полную мощность:
+ #> sudo ./z-waver.pl switch 1 on
+ Выключить:
+ #> sudo ./z-waver.pl switch 1 off
+ 
+Установить яркость на 20%:
+ #> sudo ./z-waver.pl dim 1 20 
+
+Наигравшись с яркостью, можно написать простой скрипт по медленному увелечению яркости c 1% до 99%:
+ #> for i in `seq 1 99`; do sudo /tmp/z-waver.pl 1 $i ;done
+ 
+Далее можно поставить расписание на включение или выключение устройств. 
+(см. man 5 crontab)
+ 
+Надеюсь, что мой опыт будет полезен кому-нибудь. 
+=============================================================================
+How to install Perl on Ubuntu 
+http://exploreurtalents.blogspot.com/2010/04/how-to-install-perl-on-ubuntu.html
+=============================================================================
+if /usr/bin/perl^M: bad interpreter: No such file or directory
+convert windows interpretation to unix
+dos2unix /directory/to/the/file.ext
+=============================================================================
+Makefile: как скомпилировать свой первый Hello World
+http://forum.ubuntu.ru/index.php?topic=100976.0
+=============================================================================
+Installing Lighttpd With PHP5 (PHP-FPM) And MySQL Support On Ubuntu 12.04
+http://www.howtoforge.com/installing-lighttpd-with-php5-php-fpm-and-mysql-support-on-ubuntu-12.04
+=============================================================================
+Integrating PHP and Perl
+http://www.linuxjournal.com/article/9282?page=0,1
+-----
+http://devzone.zend.com/249/using-perl-code-from-php/
+=============================================================================
+=============================================================================
+http://code.google.com/p/open-zwave/wiki/ProjectsUsingOZW
+==========================================================================================================================================================
+==========================================================================================================================================================
+
+This is the README file for the POCO C++ Libraries.
+
+In this document you will find a brief description of the directory layout,
+as well as a description necessary steps to build the POCO C++ Libraries.
+
+The Foundation library contains a platform abstraction layer (including classes
+for multithreading, file system access, logging, etc.), as well as
+a large number of useful utility classes, such various stream buffer and stream
+classes, URI handling, and many more.
+The XML library contains an XML parser with SAX2 and DOM interfaces,
+as well as an XMLWriter.
+The Util library contains classes for working with configuration files and 
+command line arguments, as well as various utility classes.
+The Net library contains network classes (sockets, HTTP client/server, etc.).
+All libraries come with a test suite and a number of sample programs.
+
+The basic directory layout is as follows:
+
+build/                     the build system for Unix/OpenVMS and additional utility scripts
+    config/                build configurations for various Unix platforms
+    rules/                 common build rules for all platforms
+    scripts/               build and utility scripts
+    vms/                   OpenVMS build system scripts
+    vxconfig/              VxWorks build configurations
+
+bin/                       all executables (dynamic link libraries on Windows)
+bin64/                     all 64-bit executables (and DLLs)
+
+doc/                       additional documentation
+
+lib/                       all libraries (import libraries on Windows)
+lib64/                     all 64-bit libraries
+
+CppUnit/                   project and make/build files for the CppUnit unit testing framework
+    doc/                   additional documentation
+    include/
+        CppUnit/           header files for CppUnit
+    src/                   source files for CppUnit
+    WinTestRunner/         Windows GUI for CppUnit
+
+Foundation/                project and make/build files for the Foundation library
+    include/
+        Poco/              header files for the Foundation library
+    src/                   source files for the Foundation library
+    testsuite/             project and make/build files for the Foundation testsuite
+              src/         source files for the Foundation testsuite
+              bin/         test suite executables
+    samples/               sample applications for the Foundation library
+
+XML/                       project and make/build files for the XML library
+    include/
+        Poco/
+            XML/           header files for the core XML library
+            SAX/           header files for SAX support
+            DOM/           header files for DOM support
+    src/                   source files for the XML library
+    testsuite/             project and make/build files for the XML testsuite
+              src/         source files for the XML testsuite
+              bin/         test suite executables
+    samples/               sample applications for the XML library
+
+Net/                       project and make/build files for the Net library
+    include/
+        Poco/
+            Net/           header files for the Net library
+    src/                   source files for the Net library
+    testsuite/             project and make/build files for the Net testsuite
+              src/         source files for the Net testsuite
+              bin/         test suite executables
+    samples/               sample applications for the Net library
+
+
+Depending on what package you have downloaded, there may be other libraries
+as well (such as Data, Crypto, NetSSL_OpenSSL and Zip).
+
+
+DOCUMENTATION
+=============
+
+Plenty of documentation (tutorial slides, articles and SDK reference)
+is available at <http://pocoproject.org/documentation/>.
+
+
+EXTERNAL DEPENDENCIES
+=====================
+
+The following libraries require third-party software (header files and
+libraries) being installed to build properly:
+
+- NetSSL_OpenSSL and Crypt require OpenSSL.
+- Data/ODBC requires ODBC 
+  (Microsoft ODBC on Windows, unixODBC or iODBC on Unix/Linux)
+- Data/MySQL requires the MySQL client.
+
+Most Unix/Linux systems already have OpenSSL preinstalled. If your system 
+does not have OpenSSL, please get it from http://www.openssl.org or 
+another source. You do not have to build OpenSSL yourself - a binary 
+distribution is fine (e.g., apt-get install openssl libssl-dev).
+
+The easiest way to install OpenSSL on Windows is to use a binary 
+(prebuild) release, for example the one from Shining Light 
+Productions that comes with a Windows installer
+(http://www.slproweb.com/products/Win32OpenSSL.html). 
+Depending on where you have installed the OpenSSL libraries, 
+you might have to edit the build script (buildwin.cmd), or add the 
+necessary paths to the INCLUDE and LIB environment variables.
+
+The Data library requires ODBC support on your system if you want 
+to build the ODBC connector (which is the default). On Windows 
+platforms, ODBC should be readily available if you have the 
+Windows SDK. On Unix/Linux platforms, you can use iODBC 
+(preinstalled on Mac OS X) or unixODBC. For the MySQL connector, 
+the MySQL client libraries and header files are required.
+
+The Data/ODBC and Data/MySQL Makefiles will search for the ODBC 
+and MySQL headers and libraries in various places. Nevertheless, 
+the Makefiles may not be able to find the headers and libraries. 
+In this case, please edit the Makefile in Data/ODBC and/or Data/MySQL 
+accordingly.
+
+
+BUILDING ON WINDOWS
+===================
+
+Microsoft Visual Studio 7.1 (2003), 8.0 (2005), 9.0 (2008) or 10.0 (2010) is required to 
+build the POCO C++ Libraries on Windows platforms. Solution and project files for all 
+versions are included. For Visual Studio 2008 and 2010, 64-bit (x64) builds are
+supported as well.
+You can either build from within Visual Studio (Build->Batch Build->Select All;Rebuild)
+or from the command line. To build from the command line, start the
+Visual Studio .NET 2003 (or 2005/2008/2010) Command Prompt and cd to the directory where you 
+have extracted the POCO C++ Libraries sources. Then, simply start the buildwin.cmd script
+and pass as argument the version of visual studio (71, 80, 90 or 100). You can customize
+what is being built by buildwin.cmd by passing appropriate command line arguments to
+it. Call buildwin.cmd without arguments to see what is available.
+
+To disable certain components (e.g., NetSSL_OpenSSL or Data/MySQL) from the build,
+edit the file named "components" and remove the respective lines.
+
+Certain libraries, like NetSSL_OpenSSL, Crypto or Data/MySQL have dependencies
+to other libraries. Since the build script does not know where to find the necessary
+header files and import libraries, you have to either add the header file paths to
+the INCLUDE environment variable and the library path to the LIB environment variable,
+or you'll have to edit the buildwin.cmd script, where these environment variables can
+be set as well. 
+
+In order to run the test suite and the samples, the top-most bin directory containing
+the shared libraries must be in the PATH environment variable.
+
+IMPORTANT NOTE: Please make sure that the path to the directory containing the
+POCO C++ Libraries source tree does not contain spaces. Otherwise, the Microsoft
+message compiler may fail when building the Foundation library.
+
+
+BUILDING FOR WINDOWS CE
+
+Building for Windows CE is supported with Microsoft Visual Studio 2008.
+Unless you have the Digi JumpStart Windows CE 6.0 SDK installed, you'll
+have to modify the included Visual Studio project and solution files.
+Please see the SDK Reference Documentation (http://pocoproject.org/documentation)
+for instructions.
+
+
+BUILDING ON UNIX/LINUX/MAC OS X
+===============================
+
+For building on Unix platforms, the POCO C++ Libraries come with their own
+build system. The build system is based on GNU Make 3.80 (or newer), with the help 
+from a few shell scripts. If you do not have GNU Make 3.80 (or later) installed on 
+your machine, you will need to download it from 
+http://directory.fsf.org/devel/build/make.html>, 
+build and install it prior to building the POCO C++ Libraries.
+
+You can check the version of GNU Make installed on your system with
+
+> gmake --version
+
+or
+
+> make --version
+
+Once you have GNU Make up and running, the rest is quite simple.
+To extract the sources and build all libraries, testsuites and samples, simply
+
+> gunzip poco-X.Y.tar.gz
+> tar -xf poco-X.Y.tar
+> cd poco-X.Y
+> ./configure
+> gmake -s
+
+See the configure script source for a list of possible options.
+For starters, we recommend --no-tests and --no-samples, to reduce build times.
+On a multicore or multiprocessor machine, use parallel makes to speed up
+the build (make -j4).
+
+Once you have successfully built POCO, you can install it
+to /usr/local (or another directory specified as parameter
+to configure --prefix=<path>):
+
+> sudo gmake -s install
+
+You can omit certain components from the build. For example, you might
+want to omit Data/ODBC or Data/MySQL if you do not have the corresponding
+third-party libraries (iodbc or unixodbc, mysqlclient) installed
+on your system. To do this, use the --omit argument to configure:
+
+> ./configure --omit=Data/ODBC,Data/MySQL
+
+
+To build on Mac OS X 10.3 with GCC 3, do the following:
+(NOTE: This only affects 10.3; for 10.4/10.5 see above)
+
+> ./configure --config=Darwin7
+> make -s
+
+
+IMPORTANT: Make sure that the path to the build directory does not
+contain symbolic links. Furthermore, on Mac OS X (or other systems
+with case insensitive filesystems), make sure that the characters in 
+the path have the correct case. Otherwise you'll get an error saying
+"Current working directory not under $PROJECT_BASE.".
+
+
+BUILDING ON QNX NEUTRINO
+========================
+
+For QNX Neutrino, the Unix build system (see the instructions above) is used.
+You can use the build system to cross-compile for a target platform on a Solaris or
+Linux host. Unfortunately, the Cygwin-based Windows host environment has some major
+quirks that prevent the build system from working there. You can also use the
+build system on a self-hosted QNX system. The default build configuration for QNX
+(found in build/config/QNX) is for a self-hosted x86 platform. To specify another
+target, edit the CCVER setting in the build configuration file. For example, to
+compile for a PowerPC target, specify CCVER=3.3.1,gcc_ntoppcbe.
+
+Service Pack 1 for QNX Neutrino 6.3 must be installed, otherwise compiling the
+Foundation library will fail due to a problem with the <list> header in the
+default (Dinkumware) C++ standard library.
+
+When building on QNX, you might want to disable NetSSL_OpenSSL, Crypto and
+some Data connectors, unless you have the necessary third party components
+available:
+
+> ./configure --omit=NetSSL_OpenSSL,Crypto,Data/ODBC,Data/MySQL
+
+
+BUILDING FOR VXWORKS
+====================
+
+Please see the VxWorks Platform Notes in the Reference Documentation for
+more information. The Reference Documentation can be found online
+at <http://pocoproject.org/docs/>.
+
+
+BUILDING ON OPENVMS
+===================
+
+OpenVMS is no longer supported in recent versions of POCO, due to both a
+lack of interest and a lack of contributors. The following
+instructions are here for historical reasons.
+
+The POCO C++ Libraries come with their own build system for OpenVMS, implemented
+by a bunch of DCL scripts. The scripts can be found in the build/vms directory.
+
+To build the POCO C++ Libraries on OpenVMS, follow the following steps.
+
+1) Download the .zip distribution of the POCO C++ Libraries
+
+2) Unzip the archive
+   $ unzip -aa poco-0_91_4.zip
+
+3) Change the directory
+   $ set def [.poco-0_01_4]
+
+4) Create a lib directory
+   $ create/dir [.lib]
+
+5) Run the buildvms.com script
+   $ @buildvms
+
+This will build the debug versions of the libraries. To build the release
+versions, use
+   $ @buildvms -release
+
+
+MORE INFORMATION
+================
+
+For more information, see the POCO C++ Libraries website
+at <http://pocoproject.org>.
+
+
+--
+$Id: //poco/1.4/dist/README#4 $
+==========================================================================================================================================================
+py-openzwave
+https://github.com/maartendamen/py-openzwave
+http://adino.se/blogg/?p=89
+
+Da gor vi ett forsok att installera py-openzwave…
+
+Jag borjade med att ladda hem py-openzwave fran:
+
+https://github.com/maartendamen/py-openzwave
+
+och insag snabbt att jag forst behovde installera Cython som jag hamtade fran:
+
+http://cython.org/
+
+och installerade genom att skriva: python setup.py install
+
+glomde forstass sudo vid forsta forsoket, men nar jag anvande  sudo python setup.py install gick det battre (sudo ar otroligt 
+irriterande och en anledning till att inte valja Ubuntu om jag kan lata bli)…
+
+Oavsett om openzwave finns installerat pa maskinen eller ej maste openzwave-biblioteket kompileras i py-openzwave katalogen.
+skriv make i katalogen: /openzwave/cpp/build/linux
+(for mer info om kompileringen av openzwave se inlagg http://adino.se/blogg/?p=78)
+
+cd:ade mig in i ratt katalog och korde sudo python setup.py install pa py-openzwave och nu ser det ut att fungera!
+
+installera pip (program for att installera python-paket):
+sudo apt-get install python-pip python-dev build-essential
+
+installera zwaveServer dependencies:
+sudo pip install Flask WTForms Flask-WTF WTFridge
+
+installera python libbar:
+sudo pip install louie
+=======================%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cython install
+
+Install Howto
+
+    Update the package index:
+
+    # sudo apt-get update
+
+    Install cython deb package:
+
+    # sudo apt-get install cython
+
+==========================================================================================================================================================
+

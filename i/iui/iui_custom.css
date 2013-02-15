@@ -1,0 +1,107 @@
+
+/************************************************************************************************/
+
+body > .toolbar {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    border-bottom: 1px solid #2d3642;
+    border-top: 1px solid #6d84a2;
+    padding: 0 10px 10px 10px;
+    height: 45px;
+}
+
+.toolbar > h1 {
+    position: absolute;
+    overflow: hidden;
+    left: 50%;
+    margin: 1px 0 0 -75px;
+    padding-top: 10px;
+    height: 45px;
+    font-size: 20px;
+    width: 150px;
+    font-weight: bold;
+    text-shadow: rgba(0, 0, 0, 0.4) 0px -1px 0;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #FFFFFF;
+}
+
+body.landscape > .toolbar > h1 {
+    margin-left: -125px;
+    width: 250px;
+}
+
+.buttonCustom {
+    position: absolute;
+    overflow: hidden;
+    top: 8px;
+    right: 6px;
+    margin: 0;
+    border-width: 0 5px;
+    padding: 0 3px;
+    width: auto;
+    height: 30px;
+    line-height: 30px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-shadow: rgba(0, 0, 0, 0.6) 0px -1px 0;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    white-space: nowrap;
+    background: none;
+}
+
+.blueButton {
+    border-width: 0 5px;
+}
+
+.leftButton {
+    left: 6px;
+    right: auto;
+}
+
+#backButton {
+    display: none;
+    left: 6px;
+    right: auto;
+    padding: 0;
+    max-width: 55px;
+    border-width: 0 8px 0 14px;
+}
+
+.whiteButton,
+.redButton,
+.grayButton {
+    display: block;
+    border-width: 0 12px;
+    padding: 10px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: inherit;
+    color: inherit;
+}
+
+/* TG */ .grayButton[selected], .grayButton:active,
+.whiteButton {
+    text-shadow: rgba(255, 255, 255, 0.7) 0 1px 0;
+/* TG */ background:transparent !important;
+}
+
+.redButton {
+/* TG */ background:transparent !important;
+    color:#fff;
+    text-shadow: #7a0001 0 -1px 0;
+}
+
+/* TG */ .whiteButton[selected], .whiteButton:active,
+.grayButton {
+    color: #FFFFFF;
+/* TG */ background:transparent !important;
+}
+
+/************************************************************************************************/

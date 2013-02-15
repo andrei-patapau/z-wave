@@ -1,0 +1,141 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	font: 100%/1.4 Verdana, Arial, Helvetica, sans-serif;
+	background:url(../images/bg.jpg) top center repeat;
+	margin: 0;
+	padding: 0;
+	color:#323232;
+	/*height: 98.3%;*/
+	height: 100%;
+}
+
+
+
+/* ~~ Element/tag selectors ~~ */
+ul, ol, dl { /* Due to variations between browsers, it's best practices to zero padding and margin on lists. For consistency, you can either specify the amounts you want here, or on the list items (LI, DT, DD) they contain. Remember that what you do here will cascade to the .nav list unless you write a more specific selector. */
+	padding: 0;
+	margin: 0;
+}
+h1, h2, h3, h4, h5, h6, p {
+	margin-top: 0;	 /* removing the top margin gets around an issue where margins can escape from their containing div. The remaining bottom margin will hold it away from any elements that follow. */
+	padding-right: 15px;
+	padding-left: 15px; /* adding the padding to the sides of the elements within the divs, instead of the divs themselves, gets rid of any box model math. A nested div with side padding can also be used as an alternate method. */
+}
+a img { /* this selector removes the default blue border displayed in some browsers around an image when it is surrounded by a link */
+	border: none;
+}
+
+/* ~~ Styling for your site's links must remain in this order - including the group of selectors that create the hover effect. ~~ */
+a:link {
+	color:#414958;
+	text-decoration: underline; /* unless you style your links to look extremely unique, it's best to provide underlines for quick visual identification */
+}
+a:visited {
+	color: #4E5869;
+	text-decoration: underline;
+}
+a:hover, a:active, a:focus { /* this group of selectors will give a keyboard navigator the same hover experience as the person using a mouse. */
+	text-decoration: none;
+}
+
+/* ~~ this container surrounds all other divs giving them their percentage-based width ~~ */
+.container {
+	width: 1000px;
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	background:url(../images/bg.jpg) top center repeat;
+	margin: 0 auto; /* the bottom margin is the negative value of the footer's height */
+	border:1px;
+}
+
+/* ~~ the header is not given a width. It will extend the full width of your layout. It contains an image placeholder that should be replaced with your own linked logo ~~ */
+.header {
+	background:url(../images/bg.jpg) top center repeat;
+	
+}
+
+
+/* ~~The footer ~~ */
+.footer {
+	background:#323232;
+	position: relative;
+	WIDTH: 100%;
+	TEXT-ALIGN: center;
+	clear: both; /* this clear property forces the .container to understand where the columns end and contain them */
+	margin: -100px auto 0;
+	height: 100px;
+}
+
+.push {
+	height: 115px; /* .push must be the same height as .footer */
+}
+
+.footer p {
+	font-size: 11px;
+	line-height: 14px;
+	color: #fff;
+
+}
+.footer a {
+	color: #439deb;
+	text-decoration: underline;
+}
+.footer a:hover {
+	color: #439deb;
+	text-decoration: none;
+}
+/* ~~END The footer ~~ */
+
+
+
+#top_nav a {display:block;background:url(../images/top_nav_bg.gif) no-repeat;width:79px;font-size:13px;line-height:29px;color:#323232;text-align:center;text-decoration:none}
+#top_nav a:hover {color:#fff;background:#323232}
+
+/* ~~miscellaneous float/clear classes~~ */
+.fltrt {  /* this class can be used to float an element right in your page. The floated element must precede the element it should be next to on the page. */
+	float: right;
+	margin-left: 8px;
+}
+.fltlft { /* this class can be used to float an element left in your page. The floated element must precede the element it should be next to on the page. */
+	float: left;
+	margin-right: 8px;
+}
+.clearfloat { /* this class can be placed on a <br /> or empty div as the final element following the last floated div (within the #container) if the #footer is removed or taken out of the #container */
+	clear:both;
+	height:0;
+	font-size: 1px;
+	line-height: 0px;
+}
+
+<!--[if lte IE 7]>
+.content { margin-right: -1px; } /* this 1px negative margin can be placed on any of the columns in this layout with the same corrective effect. */
+ul.nav a { zoom: 1; }  /* the zoom property gives IE the hasLayout trigger it needs to correct extra whiltespace between the links */
+<![endif]-->
+
+header {overflow:hidden;width:100%;height:80px}
+ul#menu {text-align:center;}
+#menu {width: 100%;overflow:hidden;margin-top:22px;margin-bottom:0px;height:55px;overflow:hidden;padding-bottom:1px;border-bottom:5px solid #323232}
+#menu li {float:left;list-style-type: none;}
+#menu li a {display:block;font-size: 24px;color:#fff;font-weight:550;padding:0 35px;border-radius:4px 4px 0 0;-moz-border-radius:4px 4px 0 0;-webkit-border-radius:4px 4px 0 0;behavior:url(js/PIE.htc);position:relative;text-decoration:none;text-transform:uppercase;line-height:55px}
+#menu li a:hover, #menu #menu_active a {background:#323232}
+#menu .end a {padding-right:36px}
+.nav1 {background:#3081c8}
+.nav2 {background:#8cbd20}
+.nav3 {background:#f09e2f}
+.nav4 {background:#b530ba}
+.nav5 {background:#30b6c9}
+
+div#divBorder {border-style:none; border-width:1px; margin: 0 15px 15px;padding:15px 0;}
+
+#wrapper {
+	width: 100%;
+	margin: 0 auto;
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+}

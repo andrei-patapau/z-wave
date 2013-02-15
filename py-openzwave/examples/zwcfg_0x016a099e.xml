@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Driver version="2" home_id="0x016a099e" node_id="1" api_capabilities="0" controller_capabilities="8" poll_interval="30">
+	<Node id="1" name="" location="" basic="2" generic="2" specific="1" type="Static PC Controller" listening="true" routing="false" max_baud_rate="40000" version="3" security="0x16" query_stage="Configuration">
+		<Manufacturer id="0086" name="Unknown: id=0086">
+			<Product type="0002" id="0001" name="Unknown: type=0002, id=0001" />
+		</Manufacturer>
+		<CommandClasses>
+			<CommandClass id="32" name="COMMAND_CLASS_BASIC" version="1" instances="1" after_mark="true" />
+			<CommandClass id="33" name="COMMAND_CLASS_CONTROLLER_REPLICATION" version="1" instances="1" />
+		</CommandClasses>
+	</Node>
+	<Node id="8" name="" location="" basic="4" generic="17" specific="4" type="Multilevel Scene Switch" listening="true" routing="true" max_baud_rate="40000" version="2" security="0x0c" query_stage="Configuration">
+		<Manufacturer id="001d" name="Leviton">
+			<Product type="0401" id="0209" name="VRI06-1LX Multilevel Scene Switch" />
+		</Manufacturer>
+		<CommandClasses>
+			<CommandClass id="32" name="COMMAND_CLASS_BASIC" version="1" instances="1" request_flags="4">
+				<Value type="byte" genre="all" instance="1" index="0" label="Basic" units="" read_only="false" min="0" max="255" value="0" />
+			</CommandClass>
+			<CommandClass id="38" name="COMMAND_CLASS_SWITCH_MULTILEVEL" version="1" instances="1" request_flags="4">
+				<Value type="byte" genre="user" instance="1" index="0" label="Level" units="" read_only="false" min="0" max="255" value="0" />
+				<Value type="trigger" genre="user" instance="1" index="1" label="Bright" units="" read_only="false" min="0" max="0" />
+				<Value type="trigger" genre="user" instance="1" index="2" label="Dim" units="" read_only="false" min="0" max="0" />
+				<Value type="bool" genre="system" instance="1" index="3" label="Ignore Start Level" units="" read_only="false" min="0" max="0" value="" />
+				<Value type="byte" genre="system" instance="1" index="4" label="Start Level" units="" read_only="false" min="0" max="255" value="" />
+			</CommandClass>
+			<CommandClass id="39" name="COMMAND_CLASS_SWITCH_ALL" version="1" instances="1" request_flags="4">
+				<Value type="list" genre="system" instance="1" index="0" label="Switch All" units="" read_only="false" min="0" max="0" value="3">
+					<Item label="Disabled" value="0" />
+					<Item label="Off Enabled" value="1" />
+					<Item label="On Enabled" value="2" />
+					<Item label="On and Off Enabled" value="255" />
+				</Value>
+			</CommandClass>
+			<CommandClass id="114" name="COMMAND_CLASS_MANUFACTURER_SPECIFIC" version="1" instances="1" request_flags="4" />
+			<CommandClass id="115" name="COMMAND_CLASS_POWERLEVEL" version="1" instances="1" request_flags="4" />
+			<CommandClass id="119" name="COMMAND_CLASS_NODE_NAMING" version="1" instances="1" request_flags="4" />
+			<CommandClass id="130" name="COMMAND_CLASS_HAIL" version="1" instances="1" request_flags="4" after_mark="true" />
+			<CommandClass id="133" name="COMMAND_CLASS_ASSOCIATION" version="1" instances="1" request_flags="4">
+				<Associations num_groups="1">
+					<Group index="1" max_associations="232" label="Group 1" auto="true">
+						<Node id="1" />
+					</Group>
+				</Associations>
+			</CommandClass>
+			<CommandClass id="134" name="COMMAND_CLASS_VERSION" version="1" instances="1" request_flags="4">
+				<Value type="string" genre="system" instance="1" index="0" label="Library Version" units="" read_only="true" min="0" max="0" value="3" />
+				<Value type="string" genre="system" instance="1" index="1" label="Protocol Version" units="" read_only="true" min="0" max="0" value="2.09" />
+				<Value type="string" genre="system" instance="1" index="2" label="Application Version" units="" read_only="true" min="0" max="0" value="0.04" />
+			</CommandClass>
+		</CommandClasses>
+	</Node>
+	<Node id="9" name="" location="" basic="4" generic="17" specific="1" type="Multilevel Power Switch" listening="true" routing="true" max_baud_rate="40000" version="2" security="0x0c" query_stage="Configuration">
+		<Manufacturer id="0063" name="GE">
+			<Product type="4457" id="3033" name="45613 3-Way Dimmer Switch" />
+		</Manufacturer>
+		<CommandClasses>
+			<CommandClass id="32" name="COMMAND_CLASS_BASIC" version="1" instances="1">
+				<Value type="byte" genre="all" instance="1" index="0" label="Basic" units="" read_only="false" min="0" max="255" value="68" />
+			</CommandClass>
+			<CommandClass id="38" name="COMMAND_CLASS_SWITCH_MULTILEVEL" version="1" instances="1">
+				<Value type="byte" genre="user" instance="1" index="0" label="Level" units="" read_only="false" min="0" max="255" value="68" />
+				<Value type="trigger" genre="user" instance="1" index="1" label="Bright" units="" read_only="false" min="0" max="0" />
+				<Value type="trigger" genre="user" instance="1" index="2" label="Dim" units="" read_only="false" min="0" max="0" />
+				<Value type="bool" genre="system" instance="1" index="3" label="Ignore Start Level" units="" read_only="false" min="0" max="0" value="" />
+				<Value type="byte" genre="system" instance="1" index="4" label="Start Level" units="" read_only="false" min="0" max="255" value="" />
+			</CommandClass>
+			<CommandClass id="39" name="COMMAND_CLASS_SWITCH_ALL" version="1" instances="1">
+				<Value type="list" genre="system" instance="1" index="0" label="Switch All" units="" read_only="false" min="0" max="0" value="3">
+					<Item label="Disabled" value="0" />
+					<Item label="Off Enabled" value="1" />
+					<Item label="On Enabled" value="2" />
+					<Item label="On and Off Enabled" value="255" />
+				</Value>
+			</CommandClass>
+			<CommandClass id="112" name="COMMAND_CLASS_CONFIGURATION" version="1" instances="1" />
+			<CommandClass id="114" name="COMMAND_CLASS_MANUFACTURER_SPECIFIC" version="1" instances="1" />
+			<CommandClass id="115" name="COMMAND_CLASS_POWERLEVEL" version="1" instances="1" />
+			<CommandClass id="134" name="COMMAND_CLASS_VERSION" version="1" instances="1">
+				<Value type="string" genre="system" instance="1" index="0" label="Library Version" units="" read_only="true" min="0" max="0" value="6" />
+				<Value type="string" genre="system" instance="1" index="1" label="Protocol Version" units="" read_only="true" min="0" max="0" value="1.91" />
+				<Value type="string" genre="system" instance="1" index="2" label="Application Version" units="" read_only="true" min="0" max="0" value="2.12" />
+			</CommandClass>
+		</CommandClasses>
+	</Node>
+</Driver>

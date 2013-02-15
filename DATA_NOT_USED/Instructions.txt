@@ -1,0 +1,25 @@
+========================================================================================================
+***********************************************************
+Setting Input Device Permissions / Creating a udev Rule
+***********************************************************
+Permissions for /dev/ttyUSB* devices
+
+1) Creating a zwave Group:
+	$ sudo groupadd -f zwave
+	
+2) Add www-data user to zwave group:
+	P.S. Make sure that your user name is www-data. <?php system("whoami"); ?>
+	$ sudo gpasswd -a www-data zwave
+	
+3) Create a udev Rule:
+	$ cd /etc/udev/rules.d
+	create a file "99-input.rules"
+	edit to the file this: KERNEL=="ttyUSB*",       NAME="%k", MODE="777", GROUP="zwave"
+	
+	Gentoo users:
+		$ sudo udevstart
+	Debian/Ubuntu users:
+		$ sudo /etc/init.d/udev restart
+	
+4) $ reboot
+======================================================================================================

@@ -1,0 +1,105 @@
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+Connecting to Remote Linux Desktop via SSH with X11 Forwarding
+http://www.craigryder.com/linux-ubuntudebetc/x11-forwarding-and-ssh-for-remote-linux-ubuntu-desktop/
+------------------------------------------------------------------------------------------------------
+
+There are two advantages of Linux, compared with many other operating systems, such as Windows and Mac OS X. The first advantage is the ultimate B/S architecture. Thus, everything software is either a server or a program running on a server. When clicking my mouse, I am talking to a server program called X Server on my box. When surfing Internet, I am using Firefox, a browser running on X Server. The second advantage is that you can always find many choices to achieve one goal. When I wanna connecting my Linux box remotely with a graphic desktop environment, I have many choice, VNC (or VNC over SSH, VNC over VPN), SSH with X-window enabled, xdmcp, etc. Here we will discuss how to connect to your Linux desktop via “ssh -X”. It’s very easy, you just need to type two more letters than common SSH connection.
+
+Why “ssh -X”? Because the graphic rendering job is done at your client so the data to transfer thru network is not huge. You won’t feel the screen is delayed even when you play movies. And this won’t add your server much load, as the same reason, thus a lot of job is done by your client. So, this is a high efficiency solution for remote desktop. You even can run big commercial graphic software, like Xilinx ISE or Mathworks MATLAB, remotely. And, this supports multi-client, no matter using different username or same username, since you a connecting to a server, both SSH server and X server.
+
+Of course, you need to properly install and configure your SSH server, which is on the same machine running your Linux graphic desktop environment (KDE, GNOME, Xfce, or whatever). Obviously, you MUST install your SSH server program. You can install it via “sudo apt-get install openssh-server” on Ubuntu Linux 7.10. I think you can easily figure out how to do so on other Linux distributions. Then edit the file /etc/ssh/ssh_config. Make these lines be in that configuration file:
+
+ForwardAgent yes
+ForwardX11 yes
+ForwardX11Trusted yes
+Now open /etc/ssh/sshd_config. Attention, the file name is sshd_config, not the same as previous one. Make sure this line be in this configuration file
+
+X11Forwarding yes
+Restart your SSH server. Now, go to your client computer, from which you will connect to this computer.
+
+I have no idea on how to do next on Windows. If your client computer runs on Linux or Mac OS X, or other OS with X server running, go ahead.
+
+If your client computer runs on Mac OS X, make sure that you have installed X11 for Mac OS X. Go to “Application”- > “Utilities” to start X11 and you will see an xterm terminal in front of you by default. If no such window, click “Applications” – > “Terminal”.
+
+Now let’s simply type
+
+ssh -X user_name@the_server_IP_or_hostname.domainame
+. For example, if my server is www.example.com and my username is NSF, I simply type
+
+ssh -X NSF@www.example.com
+. Accept the RAS key and enter your password.
+
+Have logged in? Ok, the big show is coming. If your desktop is GNOME, then just type
+
+gnome-session
+. What do you see? The GNOME desktop is in front of you. If your desktop is others, such as KDE or Xfce, please refer their docs on how to start them.
+
+Try to something, and you will really find that the networked remote desktop is very fast. You can even play movies. No delay, right? As I just said before, the graphic rendering job is done at your client so the data to transfer thru network is not huge. It’s just like when you play a 3D network game, like World of Warcraft, only some instructions are transferred thru the Internet but not all 3D objects.
+
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+Install CouchDB on Ubuntu/Debian with Lighttpd
+
+http://chrismckee.co.uk/setting-up-couchdb-on-ubuntu/
+
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+Ubuntu Linux Stop a Process
+gnome-system-monitor
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+
+1) make
+2) ./ozwcp -d -p 2272  || /home/kaboom/openzwave-control-panel
+----------------------
+1) rm -r *
+----------------------
+1) /root/openzwave-control-panel
+
+
+ls -l /dev/ttyUSB*
+
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+How to set a static IP in Ubuntu from the shell 
+http://codesnippets.joyent.com/posts/show/319
+
+Edit /etc/network/interfaces  and adjust it to your needs (in this example setup I will use the IP address 192.168.0.100):
+
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# This is a list of hotpluggable network interfaces.
+# They will be activated automatically by the hotplug subsystem.
+mapping hotplug
+        script grep
+        map eth0
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+        address 192.168.0.100
+        netmask 255.255.255.0
+        network 192.168.0.0
+        broadcast 192.168.0.255
+        gateway 192.168.0.1
+
+Then do
+sudo /etc/init.d/networking restart
+
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+Install ApacheMySQLPHP - LAMP
+https://help.ubuntu.com/community/ApacheMySQLPHP
+
+sudo apt-get install tasksel
+sudo tasksel install lamp-server
+
+=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+
+
+
+
+
+
+
+

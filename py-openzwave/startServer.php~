@@ -1,0 +1,450 @@
+<?php require_once '/var/www/connection.php'; ?>
+<?php require_once '/var/www/execute.php'; ?>
+
+<?php
+
+//chdir(dirname($_SERVER['SCRIPT_FILENAME']));
+$serverpy = new serserPY();
+/*
+echo getcwd();
+sleep(3);
+echo "  second";
+*/
+
+mysql_select_db('currentState');
+//----------------------------------------------------------------------------------------
+$dim_level = 0;
+
+
+$message = "";
+$run_counter = 0;
+$log_file = '/var/www/log_file.log';
+$message =  "\n====================================================================================\n";
+$timestamp = date('d/m/Y H:i:s');
+$message = $message . "Log Start: [" . $timestamp . "]";
+$message = $message . "\n====================================================================================";
+//------------------------------------------------------------
+//Log File
+error_log($message.PHP_EOL, 3, $log_file);
+//------------------------------------------------------------
+
+while(true){
+
+	$run_counter++;
+	$message = "---$run_counter\n";
+	
+	//ob_clean();//Clean (erase) the output buffer (does not destroy the output buffer)
+	ob_start();//Turn on output buffering
+	$serverpy->testServer();
+	$value = ob_get_contents();//Return the contents of the output buffer
+	ob_end_clean();//Clean (erase) the output buffer and turn off output buffering
+	
+	//$message = $message .  $serverpy->testServer();
+	$message = $message .  $value;
+	
+	//------------------------------------------------------------
+	//Log File
+	error_log($message.PHP_EOL, 3, $log_file);
+	//------------------------------------------------------------
+ 
+	sleep(1);
+	
+	//------------------------------------------------------------
+	//check if shutdown activated
+	$result = mysql_query("SELECT * FROM home WHERE id = 1");
+	$server_1_db = mysql_fetch_array($result); // 1 => stop execution; 0 => continue
+	$server_1_exit = $server_1_db['server_1_exit']; //Just reusing the same variable(why not)
+	if($server_1_exit){//emergency shut down
+		mysql_query("UPDATE `home` SET `server_1_exit`= '0' WHERE `id` = '1'");
+		break;
+	}
+	//------------------------------------------------------------
+}
+$timestamp = date('d/m/Y H:i:s');
+$message = "\n====================================================================================\n" . "Log End: [" . $timestamp . "]" . "\n====================================================================================\n";
+//------------------------------------------------------------
+//Log File
+error_log($message.PHP_EOL, 3, $log_file);
+//------------------------------------------------------------
+
+
+class serserPY
+{
+	public function testServer(){
+		//----------------------------------------------------------------------------------------
+		///select database
+		mysql_select_db('currentState');
+		//----------------------------------------------------------------------------------------
+		$result = mysql_query("SELECT server_1 FROM home WHERE id = 1");
+		$server_1 = mysql_fetch_array($result); // 0 => stop execution; 1 => continue
+		$server_1 = $server_1['server_1']; //Just reusing the same variable(why not)
+		//----------------------------------------------------------------------------------------
+		$port = $this->getPortNumber("fcall");
+		//echo $port;
+		//if port found we pass /dev/ttyUSB<port_number> => strpos should find our string at 
+		//location 0(beginning). Otherwise, string doesn't exist.
+		$usb_found = strpos($port,'USB');
+		
+		
+		if($server_1){
+			//need to stop execution of all service applications in case XML file needs to be updated
+			if($usb_found){
+				//----------------------------------------------------------------------------------------
+				$result = mysql_query("SELECT xml_remove FROM home WHERE id = 1");
+				$xml_remove = mysql_fetch_array($result); // 1 => remove data; 0 => do nothing
+				$xml_remove = $xml_remove['xml_remove']; //Just reusing the same variable(why not)
+				// Do if xml_remove flag been set
+				if($xml_remove){
+					mysql_query("UPDATE `home` SET `xml_remove`= '0' WHERE `id` = '1'"); //unset xml_remove flag
+					mysql_query("UPDATE `home` SET `reload_nodes`= '1' WHERE `id` = '1'"); //set flag to reset database
+					$xml_remove_feedback = $this->removeXML();
+					echo $xml_remove_feedback;
+				}
+				//----------------------------------------------------------------------------------------
+				//check if it's a first run. If yes => clean database/reload/remove all nodes
+				$result = mysql_query("SELECT reload_nodes FROM home WHERE id = 1");
+				$reload_nodes = mysql_fetch_array($result); // 1 => remove data; 0 => do nothing
+				$reload_nodes = $reload_nodes['reload_nodes']; //Just reusing the same variable(why not)
+				if($reload_nodes != 0){
+					//remove
+					//set to 0
+					$result = mysql_query("DELETE FROM `nodes` WHERE 1"); //remove all data from table 'nodes'
+					$result = mysql_query("DELETE FROM `_nodes_` WHERE 1"); //remove all data from table '_nodes_'
+					$updateQuery = "UPDATE `home` SET `reload_nodes`= '0' WHERE `id` = '1'"; //unset reload nodes
+					echo mysql_query($updateQuery); //set reload_nodes to 0 (don't reload anymore)
+				}
+				//----------------------------------------------------------------------------------------
+				//$currentLocation = getcwd();
+				//currentLocation = /var/www/py-openzwave
+				$str = shell_exec("python " . "/var/www/py-openzwave/examples/testServerFile.py " . $port);
+				$order   = array("[", "'", "]", ",");
+				$replace = '';
+				$str = str_replace($order, $replace, $str);
+				$nodeArray = explode(" ", $str); //[node_id, isOn, level]...
+				// nodeArray contains node_id, isOn and level sequences for all nodes
+				$nodeArrayLength = count($nodeArray); //returns number of elements in nodeArray
+				$found = false;
+				//----------------------------------------------------------------------------------------
+				//update home_id and hash of xml file
+				$getHomeId_hash_array = $this->getXML_Home_id();
+				$getHomeId_length = count($getHomeId_hash_array);
+				$getHomeId = (string)$getHomeId_hash_array[$getHomeId_length - 2];
+				$getHash = (string)$getHomeId_hash_array[$getHomeId_length - 1];
+				mysql_query("UPDATE `home` SET `home_id`='$getHomeId',`md5_hash_of_xml`='$getHash' WHERE id = 1");
+				//----------------------------------------------------------------------------------------
+				// runs for each node that has been found
+				//loads data and keeps track of isON and level
+				//TODO: add manifacturer_name and product_name
+				echo "id --- isON --- level<br>";
+				for($i = 0; $i < $nodeArrayLength; $i = $i + 3){
+					$i1 = $i; //node id index
+					$i2 = $i + 1; //node isON index
+					$i3 = $i + 2; //node level index
+					
+					//a bit inefficient approach, but it works!
+					$result = mysql_query("SELECT * FROM nodes");
+					while($row = mysql_fetch_array($result)){
+						if($row['node_id'] == $nodeArray[$i]){
+							$found = true; //node exist
+							$tempNodeID = $row['node_id'];
+							$tempNodeIsON = $row['isON'];
+							$tempNodeLevel = $row['level'];
+						}
+					}
+					 
+					//check first if node Manufacturer ID exist. If yes => do everything bellow, if no => remove node from database
+					//=============================================================================================================================
+					$homeid_manifactureid_string = $this->getXMLData($nodeArray[$i]);
+					$homeid_manifactureid_array = explode(" ", $homeid_manifactureid_string); //[ home_id, manufacturerID ] ... productType, productID
+					
+					//echo $homeid_manifactureid_array[0] . "-" . $homeid_manifactureid_array[1] . "-" . $homeid_manifactureid_array[2] . "-" . $homeid_manifactureid_array[3] . "\n";
+					$manufacturer_id = (string)$homeid_manifactureid_array[1];
+					$product_type_id = (string)$homeid_manifactureid_array[2];
+					$product_id = (string)$homeid_manifactureid_array[3];
+					
+					// if manifacture id exist => productType, productID exist too => 
+					if($homeid_manifactureid_array[1] != "-"){
+					
+						//echo $homeid_manifactureid_array[0] . "-" . $homeid_manifactureid_array[1] . "-" . $homeid_manifactureid_array[2] . "-" . $homeid_manifactureid_array[3] . "\n";
+						//At this point we know that manufacturer_id, product_type_id and product_id exist. Now let's get manifacturer_name and product_name from manufacturer_specific.xml
+						
+						$manufacturer_specifics_array = $this->getManufacturerSpecificXML($manufacturer_id, $product_type_id, $product_id);
+						$manufacturer_specifics_array_length = count($manufacturer_specifics_array);
+						
+						$manifacturer_name = (string)$manufacturer_specifics_array[$manufacturer_specifics_array_length - 2];
+						$product_name = (string)$manufacturer_specifics_array[$manufacturer_specifics_array_length - 1];
+						
+						//=============================================================================================================================
+						// node id exist in database
+						if($found){
+							
+							//%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=
+							//check here if isON been changed					
+							//if so => update isON status
+							
+							$isON_alpha = (string)$nodeArray[$i2];
+							$isON_beta = (string)$tempNodeIsON;
+							if($isON_alpha != $isON_beta){
+								mysql_query("UPDATE `nodes` SET `isON`= '$nodeArray[$i2]' WHERE `node_id` = '$tempNodeID'");
+								mysql_query("UPDATE `_nodes_` SET `isON`= '$nodeArray[$i2]' WHERE `node_id` = '$tempNodeID'");
+								//echo "update warning: node_id - $tempNodeID; isON - $nodeArray[$i2]\n";
+							}
+							//%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=
+							//check here if level been changed
+							
+							$level_alpha = (int)$nodeArray[$i3];
+							$level_beta = (int)$tempNodeLevel;
+							if($level_alpha != $level_beta){
+								// if so => update level
+								mysql_query("UPDATE `nodes` SET `level`= '$nodeArray[$i3]' WHERE `node_id` = '$tempNodeID'");
+								mysql_query("UPDATE `_nodes_` SET `level`= '$nodeArray[$i3]' WHERE `node_id` = '$tempNodeID'");
+								//echo "update warning: node_id - $tempNodeID; level - '$level_alpha' - temp level - '$level_beta'\n";
+							}
+							//%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=%=
+							
+							echo $tempNodeID . " ---- " . $tempNodeIsON . " --- " . $tempNodeLevel . "<br>";
+							
+						}
+						else{
+							echo "\n" . $manufacturer_id . "-" . $product_type_id . "-" . $product_id . "  -  added to mysql\n";
+							//add a new node to DB if it doesn't exist yet
+							mysql_query("INSERT INTO `nodes`(`node_id`, `isON`, `level`) VALUES ('$nodeArray[$i1]', '$nodeArray[$i2]', '$nodeArray[$i3]')");
+							mysql_query("INSERT INTO `_nodes_`(`node_id`, `isON`, `level`) VALUES ('$nodeArray[$i1]', '$nodeArray[$i2]', '$nodeArray[$i3]')");
+							//update node by setting manufacturerID, productType, productID
+							mysql_query("UPDATE `nodes` SET `manufacturer_id`='$manufacturer_id',`product_type_id`='$product_type_id',`product_id`='$product_id' WHERE `node_id` = '$nodeArray[$i]'");
+							mysql_query("UPDATE `_nodes_` SET `manufacturer_id`='$manufacturer_id',`product_type_id`='$product_type_id',`product_id`='$product_id' WHERE `node_id` = '$nodeArray[$i]'");
+							//update node by setting manifacturer_name, product_name
+							mysql_query("UPDATE `nodes` SET `manifacturer_name`='$manifacturer_name',`product_name`='$product_name' WHERE `node_id` = '$nodeArray[$i]'");
+							mysql_query("UPDATE `_nodes_` SET `manifacturer_name`='$manifacturer_name',`product_name`='$product_name' WHERE `node_id` = '$nodeArray[$i]'");
+						}
+						
+						$found = false;
+						//echo $nodeArray[$i] . $nodeArray[$i+1] . $nodeArray[$i+2] . " - ";
+						//=============================================================================================================================
+						
+					}
+					else{
+						//currently do nothing. Don't add, don't update, node doesn't exist.
+					}
+				}
+				//=============================================================================================================================
+				//=============================================================================================================================
+				//compare DB _nodes_ vs nodes
+				//if different => execute pl script
+				// $port given
+				$nodes = mysql_query("SELECT * FROM nodes");
+				
+				/*
+				//random light intensity generator
+				if(($row != null) && ($_row_ != null)){
+					$dim_level = rand(0, 99);
+					shell_exec("perl z-waver.pl '$port' dim 9 '$dim_level'");
+				}
+				*/
+				
+				while($row = mysql_fetch_array($nodes)){
+					$curr_db_id = $row['node_id'];
+					$curr_db_isON = $row['isON'];
+					$curr_db_level = $row['level'];
+					
+					$_nodes_ = mysql_query("SELECT * FROM _nodes_ WHERE node_id = '$curr_db_id'");
+					$_row_= mysql_fetch_array($_nodes_);
+					
+					$temp_db_isON = $_row_['isON'];
+					if($curr_db_isON != $temp_db_isON){
+						if($temp_db_isON == "False"){
+							$temp_db_isON = "off";
+						}
+						else{
+							$temp_db_isON = "on";
+						}
+						
+						shell_exec("perl z-waver.pl '$port' switch '$curr_db_id' '$temp_db_isON'");
+					}
+					
+					$temp_db_level = $_row_['level'];
+					
+					echo $curr_db_id . "--" . $curr_db_level . "---" . $temp_db_level . "\n";
+					
+					if($curr_db_level != $temp_db_level){
+						shell_exec("perl z-waver.pl '$port' dim '$curr_db_id' '$temp_db_level'");
+						echo "\nScript Executed for temp id = $curr_db_id -- level = $temp_db_level\n";
+					}
+					
+				}
+				
+				//=============================================================================================================================
+				//=============================================================================================================================
+			}
+			else{
+				echo "USB adapter not found.";
+
+			}
+		}
+		else{
+			echo "Execution is halted.";
+			sleep(5);
+		}
+	}
+	
+	public function getXMLData($node_id){
+		
+		//get XML file name
+		$file_name = "file is missing";
+		//file located 1 directory above the current location => '../'
+		if ($handle = opendir("/var/www/")) {
+			while (false !== ($entry = readdir($handle))) {
+				if ((strpos($entry, 'zwcfg_') !== false) && (strpos($entry, '.xml') !== false)){
+					$file_name = $entry;
+				}
+			}
+			closedir($handle);
+		}
+		
+		//load XML
+		$nodes = simplexml_load_file($file_name);
+		
+		$home_id = $nodes['home_id']; //get home id
+		$manufacturerID = "-";
+		$productType = "-";
+		$productID = "-";
+		
+		$homeid_manifactureid = $home_id . " " . $manufacturerID . " " . $productType . " " . $productID;
+		
+		foreach ($nodes as $node){
+			if($node['id'] == $node_id){
+				if($node->Manufacturer['id'] != ""){
+					$manufacturerID = $node->Manufacturer['id'];
+					$productType = $node->Manufacturer->Product['type'];
+					$productID = $node->Manufacturer->Product['id'];
+					$homeid_manifactureid = $home_id . " " . $manufacturerID . " " . $productType . " " . $productID;
+				}
+			}
+		}
+
+		return $homeid_manifactureid;
+	}
+	
+	public function getXML_Home_id(){
+		
+		//get XML file name
+		$stack = array("FILE_NOT_FOUND", "FILE_NOT_FOUND");
+		//file located 1 directory above the current location => '../'
+		if ($handle = opendir("/var/www/")) {
+			while (false !== ($entry = readdir($handle))) {
+				if ((strpos($entry, 'zwcfg_') !== false) && (strpos($entry, '.xml') !== false)){
+					//load XML
+					$nodes = simplexml_load_file("/var/www/$entry");
+					$home_id = $nodes['home_id']; //get home id
+					$md5 = md5_file("/var/www/$entry");
+					array_push($stack, $home_id, $md5);
+				}
+			}
+			closedir($handle);
+		}
+		return $stack;
+	}
+	
+	public function getManufacturerSpecificXML($manufacturer_id, $product_type_id, $product_id){
+
+		$stack = array("FILE_NOT_FOUND", "FILE_NOT_FOUND");
+		
+		if (file_exists("/var/www/py-openzwave/openzwave/config/manufacturer_specific.xml")){	
+			
+			array_push($stack, "NOT FOUND", "NOT FOUND");
+			$PRODUCT_EXIST = FALSE;
+			$PRODUCT_PUSH = FALSE;
+			$manufactures = simplexml_load_file("/var/www/py-openzwave/openzwave/config/manufacturer_specific.xml");
+			foreach ($manufactures as $manufacturer){
+				if($manufacturer['id'] == $manufacturer_id){ // && ($manufacturer->Product['type'] == $product_type_id) && ($manufacturer->Product['id'] == $product_id)
+					array_push($stack, $manufacturer['name']);
+					foreach($manufacturer as $product){
+						$PRODUCT_EXIST = TRUE;
+						if(($product['type'] == $product_type_id) && ($product['id'] == $product_id)){
+							array_push($stack, $product['name']);
+							$PRODUCT_PUSH = TRUE;
+						}
+					}
+					if(($PRODUCT_EXIST == TRUE) && ($PRODUCT_PUSH == FALSE))
+						array_push($stack, "NOT FOUND");
+				}
+			}
+			return $stack;
+		} else {
+			return $stack;
+		}
+	}
+
+	public function getPortNumber($call_type){
+		
+		// ' 2>&1' => even when a result is an error, it returns an error string which would contain original request ('/dev/ttyUSB*')
+		// Therefore, if '/dev/ttyUSB*' found => USB port was not found => return 'Adapter Not Found'
+		$output = shell_exec('ls -l /dev/ttyUSB*'.' 2>&1'); 
+		$usb_not_found = strpos($output,'USB*');
+		//echo $usb_not_found;
+		
+		if($usb_not_found === true){
+			if ($call_type == "fcall")
+				return "Adapter Not Found";
+			else
+				echo "Adapter Not Found";
+		}
+		else{
+			//reverse string
+			$reverse = strrev($output);
+
+			//get number of USB port
+			$usb_port = $reverse{1};
+
+			if(is_numeric($usb_port))
+				if ($call_type == "fcall")
+					return "/dev/ttyUSB$usb_port";
+				else
+					echo "/dev/ttyUSB$usb_port";
+			else 
+			{
+				//Sometimes for unknown reason EOL character is missing, 
+				//therefore check if USB port is a first character
+				$usb_port = $reverse{0};
+				
+				if(is_numeric($usb_port))
+					if ($call_type == "fcall")
+						return "/dev/ttyUSB$usb_port";
+					else
+						echo "/dev/ttyUSB$usb_port";
+				else 
+					if ($call_type == "fcall")
+						return "Device is missing.";
+					else
+						echo "Device is missing.";
+			}
+		}
+
+	}
+	
+	public function removeXML(){
+		$xml_remove_feedback = "Remove Failed. File Not Found.";
+		if ($handle = opendir("/var/www/")) {
+			while (false !== ($entry = readdir($handle))) {
+				if ((strpos($entry, 'zwcfg_') !== false) && (strpos($entry, '.xml') !== false)){
+					unlink ("/var/www/$entry");
+					$xml_remove_feedback = "$entry has been Removed."; 
+				}
+			}
+			closedir($handle);
+		}
+		return $xml_remove_feedback;
+	}
+	
+	
+}
+?>
+
+
+
+
+
+
+
+
+
